@@ -1,12 +1,14 @@
 const express = require("express");
 const app = express();
 const PORT = process.env.PORT || 3000;
+
 app.use(express.text());
 app.use(express.json());
 
 let servers = 0;
 let users = 0;
 
+// GET endpoints
 app.get("/clients/servers", (req, res) => {
     res.send(servers.toString());
 });
@@ -15,10 +17,19 @@ app.get("/clients/users", (req, res) => {
     res.send(users.toString());
 });
 
-// POST servers (+1)
+// POST servers (+1 or -1)
 app.post("/clients/servers", (req, res) => {
-    servers += 1;
-    console.log("Servers +1 =>", servers);
+    let delta = parseInt(req.body);
+
+    // Если нет delta, по умолчанию +1 (для старых клиентов)
+    if (isNaN(delta)) delta = 1;
+
+    servers += delta;
+
+    // Защита: нельзя < 0
+    if (servers < 0) servers = 0;
+
+    console.log(`Servers ${delta > 0 ? "+" : ""}${delta} =>`, servers);
     res.send("OK");
 });
 
@@ -31,8 +42,11 @@ app.post("/clients/users", (req, res) => {
     }
 
     users += delta;
-    console.log(`Users ${delta > 0 ? "+" : ""}${delta} =>`, users);
 
+    // Защита: нельзя < 0
+    if (users < 0) users = 0;
+
+    console.log(`Users ${delta > 0 ? "+" : ""}${delta} =>`, users);
     res.send("OK");
 });
 
